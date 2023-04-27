@@ -21,9 +21,9 @@ void loop(){
     gps.encode(ss.read());
     if (gps.location.isUpdated()){
       Serial.print("Latitude= "); 
-      Serial.print(gps.location.lat(), 6);
+      Serial.print(gps.location.lat(), 8);
       Serial.print(" Longitude= "); 
-      Serial.println(gps.location.lng(), 6);
+      Serial.println(gps.location.lng(), 8);
     }
   }
 }
