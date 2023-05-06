@@ -20,7 +20,7 @@ void Ping() {
   gsmSerial.println("AT+CIICR\r");
   delay(8000);
   Serial.println("Getting local IP address");
-  gsmSerial.println("AT+CPIN?");
+  gsmSerial.println("AT+CPIN?"); 
   delay(5000);
   //Print the response on the Serial Monitor
   while (gsmSerial.available() > 0) {
