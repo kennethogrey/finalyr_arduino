@@ -7,7 +7,7 @@ void setup() {
   buttonState = digitalRead(2);
   Serial.begin(9600);
   attachInterrupt(0, buttonPressed, CHANGE);
-}
+}i
 
 void loop() {
 }

@@ -71,9 +71,13 @@ void loop() {
       while (gsmSerial.available() > 0) {
         Serial.write(gsmSerial.read());
       }
-      String data = "Latitude=" + String(gps.location.lat(), 8) + "&Longitude=" + String(gps.location.lng(), 8) + "&Date/Time=" + String(t);
-      Serial.println("Sending data to website: " + data);
-      gsmSerial.println("AT+HTTPPARA=\"URL\",\"http://www.example.com/?" + data + "\"");
+      String lat = String(gps.location.lat(), 8);
+      String lng = String(gps.location.lng(), 8);
+      String time = String(t);
+      //Serial.println("Sending data to website: " + lat " " + lng + " " + time);
+      Serial.println("Sending data to website: " + lat + " " + lng + " " + time);
+      //gsmSerial.println("AT+HTTPPARA=\"URL\",\"https://gpsbse23-10.000webhostapp.com/gpsdata.php?lat="+lat+"&lon="+lng+"&time="+time+"\r"");
+      gsmSerial.println("AT+HTTPPARA=\"URL\",\"https://gpsbse23-10.000webhostapp.com/gpsdata.php?lat="+lat+"&lng="+lng+"&time="+time+"\"\r");
       delay(2000);
       gsmSerial.println("AT+HTTPACTION=0");
       delay(20000);
