@@ -1,29 +1,40 @@
-#include <AltSoftSerial.h>
 #include <SoftwareSerial.h>
 #include <TinyGPS++.h>
+#include <RTClib.h>
+#include <Wire.h>
+
 SoftwareSerial sim800L(5,6);
-
-//GPS Module RX pin to Arduino 9
-//GPS Module TX pin to Arduino 8
-AltSoftSerial neogps;
-
+SoftwareSerial neogps(3,4);
 TinyGPSPlus gps;
+RTC_DS3231 rtc;
 
+char t[32];
 unsigned long previousMillis = 0;
 long interval = 60000;
+int buttonState;
+unsigned long lastDebounceTime = 0;
+unsigned long debounceDelay = 100;
 
 
 void setup()
 {
   //Begin serial communication with Arduino and Arduino IDE (Serial Monitor)
   Serial.begin(9600);
+
+  //buttton
+  pinMode(2, INPUT);
+  buttonState = digitalRead(2);
+  attachInterrupt(0, buttonPressed, CHANGE);
   
   //Begin serial communication with Arduino and SIM800L
   sim800L.begin(9600);
 
+  Wire.begin();
+  rtc.begin();
+  rtc.adjust(DateTime(F(__DATE__),F(__TIME__)));
+
   //Begin serial communication with Arduino and gps
   neogps.begin(9600);
-
 
   Serial.println("Initializing...");
   //delay(10000);
@@ -71,18 +82,30 @@ int sendGpsToServer()
       String latitude, longitude;
       float altitude;
       unsigned long date, time, speed, satellites;
-  
+
+      DateTime now = rtc.now();
+      sprintf(t, "%02d:%02d %02d/%02d/%02d", now.hour(), now.minute(), now.day(), now.month(), now.year());  
+      Serial.print(F("Date/Time: "));
+      Serial.println(t);
+      delay(1000);
+      
       latitude = String(gps.location.lat(), 8); // Latitude in degrees (double)
       longitude = String(gps.location.lng(), 8); // Longitude in degrees (double)
       altitude = gps.altitude.meters(); // Altitude in meters (double)
-      date = gps.date.value(); // Raw date in DDMMYY format (u32)
-      time = gps.time.value(); // Raw time in HHMMSSCC format (u32)
       speed = gps.speed.kmph();
       
       Serial.print("Latitude= "); 
       Serial.print(latitude);
       Serial.print(" Longitude= "); 
       Serial.println(longitude);
+      Serial.print(" Altitude= "); 
+      Serial.println(altitude);
+      Serial.print(" date= "); 
+      Serial.println(date);
+      Serial.print(" Time= "); 
+      Serial.println(time);
+      Serial.print(" speed= "); 
+      Serial.println(speed);
   
       //if (latitude == 0) {return 0;}
       
@@ -91,8 +114,6 @@ int sendGpsToServer()
       url += latitude;
       url += "&lng=";
       url += longitude;
-
-      //url = "http://ahmadssd.000webhostapp.com/gpsdata.php?lat=222&lng=222";
 
       Serial.println(url);    
       delay(300);
@@ -110,7 +131,7 @@ int sendGpsToServer()
     sendATcommand("AT+HTTPINIT", "OK", 2000); 
     sendATcommand("AT+HTTPPARA=\"CID\",1", "OK", 1000);
     //Set the HTTP URL sim800.print("AT+HTTPPARA="URL","http://ahmadssd.000webhostapp.com/gpsdata.php?lat=222&lng=222"\r");
-    sim800L.print("AT+HTTPPARA=\"URL\",\"");
+    sim800L.print("AT+HTTPPARA=\"URL\",\"r");
     sim800L.print(url);
     sendATcommand("\"", "OK", 1000);
     //Set up the HTTP action
@@ -163,3 +184,49 @@ int8_t sendATcommand(char* ATcommand, char* expected_answer, unsigned int timeou
   return answer;
 }
 
+void buttonPressed(){
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - lastDebounceTime > debounceDelay) {
+    lastDebounceTime = currentMillis;
+    int newState = digitalRead(2);
+    if(buttonState != newState){
+      Serial.println("Button has been pressed");
+      buttonState = newState;
+    }
+  }
+}
+
+// Set Connection to GPRS :
+
+// AT+SAPBR=3,1,"Contype","GPRS"﻿
+// Set the APN, username and password.
+
+// AT+CSTT="3gprs","3gprs","3gprs"
+// (the APN, username and password i’m using is 3GPRS
+
+// Enable the GPRS
+
+// AT+SAPBR=1,1﻿
+// Check if we already got IP Adress
+
+// AT+SAPBR=2,1
+// Enabling HTTP mode :
+
+
+// AT+HTTPSSL=1﻿
+// Setting HTTP bearer profile :
+
+// AT+HTTPPARA="CID",1
+// Give URL of website we want to access :
+
+// AT+HTTPPARA="URL","https://miliohm.com/miliohmSIM800L.php"﻿
+// Start HTTP GET Session :
+
+// AT+HTTPACTION=0﻿
+// Read the content of webpage :
+
+// AT+HTTPREAD
+// Terminate the session :
+
+// AT+HTTPTERM
