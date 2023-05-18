@@ -1,26 +1,22 @@
-int buttonState;
-unsigned long lastDebounceTime = 0;
-unsigned long debounceDelay = 100;
-
+int buttonState = 0;
 void setup() {
   pinMode(2, INPUT);
-  buttonState = digitalRead(2);
   Serial.begin(9600);
   attachInterrupt(0, buttonPressed, CHANGE);
-}i
+}
 
 void loop() {
 }
 
 void buttonPressed(){
-  unsigned long currentMillis = millis();
-
-  if (currentMillis - lastDebounceTime > debounceDelay) {
-    lastDebounceTime = currentMillis;
-    int newState = digitalRead(2);
-    if(buttonState != newState){
+  buttonState = digitalRead(2);
+  if(buttonState == 1){
+    delay(10);
+    buttonState = digitalRead(2);
+    if(buttonState == 0){
       Serial.println("Button has been pressed");
-      buttonState = newState;
     }
+  }else{
+    delay(100);
   }
 }
