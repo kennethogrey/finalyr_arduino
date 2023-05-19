@@ -8,13 +8,19 @@ void setup()
   Serial.begin(9600);
   Wire.begin();
   rtc.begin();
-  rtc.adjust(DateTime(F(__DATE__),F(__TIME__)));
-  //rtc.adjust(DateTime(2019, 1, 21, 5, 0, 0));
+  if (rtc.lostPower())
+  {
+    Serial.println("RTC is not running! Setting the time...");
+    
+    // Set the RTC to the date and time this sketch was compiled
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // Alternatively, you can set a specific date and time manually
+  }
 }
 void loop()
 {
   DateTime now = rtc.now();
-  sprintf(t, "%02d:%02d %02d/%02d/%02d", now.hour(), now.minute(), now.day(), now.month(), now.year());  
+  sprintf(t, "%02d:%02d:%02d %02d/%02d/%02d", now.hour(), now.minute(), now.second(), now.day(), now.month(), now.year());  
   Serial.print(F("Date/Time: "));
   Serial.println(t);
   delay(1000);

@@ -18,7 +18,7 @@ void setup(){
 void loop(){
   // This sketch displays information every time a new sentence is correctly encoded.
   while (ss.available() > 0){
-    gps.encode(ss.read());
+    gps.encode(ss.read());    
     if (gps.location.isUpdated()){
       Serial.print("Latitude= "); 
       Serial.print(gps.location.lat(), 8);
