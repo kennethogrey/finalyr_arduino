@@ -60,7 +60,7 @@ void loop() {
       gsmSerial.println("AT+CGATT=1\r");
       delay(2000);
       Serial.println("Setting the APN");
-      gsmSerial.println("AT+CSTT=\"internet\"\r");
+      gsmSerial.println("AT+CSTT=\"airtelgprs.com\"\r");
       delay(2000);
       Serial.println("Bringing up the wireless connection");
       gsmSerial.println("AT+CIICR\r");
