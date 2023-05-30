@@ -1,8 +1,8 @@
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
+#include <AltSoftSerial.h>
 #include <RTClib.h>
 #include <Wire.h>
-#include <SoftwareSerial.h>
 #include <string.h>
 
 // Global variables
@@ -13,19 +13,19 @@ unsigned long debounceDelay = 100;   // Delay time for debounce
 RTC_DS3231 rtc;
 int device_id = 1;
 char t[32];
+SoftwareSerial gprsSerial(5, 6);
+//GPS Module RX pin to Arduino 9
+//GPS Module TX pin to Arduino 8
+AltSoftSerial neogps;
 // The TinyGPS++ object
 TinyGPSPlus gps;
-// The serial connection to the GPS and GSM device
-SoftwareSerial ss(3, 4);
-SoftwareSerial gprsSerial(5, 6);
 // Global variables to store latitude and longitude
-double latitude = 0.0;
-double longitude = 0.0;
+String latitude, longitude;
 
 void setup()
 {
   Serial.begin(9600);
-  ss.begin(9600);
+  neogps.begin(9600);
   gprsSerial.begin(9600); // The GPRS baud rate
   pinMode(2, INPUT);
   attachInterrupt(0, buttonPressed, CHANGE);
@@ -43,19 +43,29 @@ void setup()
 
 void loop()
 {
-  if (ss.available() > 0)
-  {
-    gps.encode(ss.read());
-    if (gps.location.isUpdated())
-    {
-      latitude = gps.location.lat();
-      longitude = gps.location.lng();
-      Serial.print("Latitude= ");
-      Serial.print(latitude, 8);
-      Serial.print(" Longitude= ");
-      Serial.println(longitude, 8);
+  //Can take up to 60 seconds
+    boolean newData = false;
+    for (unsigned long start = millis(); millis() - start < 2000;){
+      while (neogps.available()){
+        if (gps.encode(neogps.read())){
+          newData = true;
+          break;
+        }
+      }
     }
-  }
+  
+    //If newData is true
+    if(true){
+      newData = false;
+  
+      latitude = String(gps.location.lat(), 8); // Latitude in degrees (double)
+      longitude = String(gps.location.lng(), 8); // Longitude in degrees (double)
+    }
+
+    Serial.print("Latitude= "); 
+      Serial.print(latitude);
+      Serial.print(" Longitude= "); 
+      Serial.println(longitude);
 
   // Add a delay to control the repetition rate
   delay(1000);
