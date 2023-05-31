@@ -12,7 +12,6 @@ unsigned long lastDebounceTime = 0;  // Variable to store the last debounce time
 unsigned long debounceDelay = 100;   // Delay time for debounce
 RTC_DS3231 rtc;
 int device_id = 1;
-char t[32];
 SoftwareSerial gprsSerial(5, 6);
 //GPS Module RX pin to Arduino 9
 //GPS Module TX pin to Arduino 8
@@ -20,7 +19,7 @@ AltSoftSerial neogps;
 // The TinyGPS++ object
 TinyGPSPlus gps;
 // Global variables to store latitude and longitude
-String latitude, longitude;
+String latitude, longitude, time, date;
 
 void setup()
 {
@@ -71,9 +70,12 @@ void loop()
   delay(1000);
   // Adjust the delay time as needed
   DateTime now = rtc.now();
-  sprintf(t, "%02d:%02d:%02d %02d-%02d-%02d", now.hour(), now.minute(), now.second(), now.day(), now.month(), now.year());
-  Serial.print(F("Date/Time: "));
-  Serial.println(t);
+  time = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+  date = String(now.day()) + "-" + String(now.month()) + "-" + String(now.year());
+  Serial.print(F("Time: "));
+  Serial.println(time);
+  Serial.print(F("Date: "));
+  Serial.println(date);
   Serial.println(alertStatus);
   delay(1000);
 
@@ -136,9 +138,10 @@ void loop()
   ShowSerialData();
 
   // Construct the request string
-  String str = "GET https://api.thingspeak.com/update?api_key=G4Y49K8IMI36URKX&field1=" +
-               String(device_id) + "&field2=" + String(latitude) + "&field3=" + String(longitude) +
-               "&field4=" + String(t) + "&field5=" + String(alertStatus);
+  String str = "GET https://api.thingspeak.com/update?api_key=G4Y49K8IMI36URKX&field1="+
+                String(device_id)+"&field2="+latitude+"&field3="+longitude+"&field4="+
+                time+"&field5="+date+"&field6="+String(alertStatus);
+  //String str = "GET https://api.thingspeak.com/update?api_key=G4Y49K8IMI36URKX&field1="+String(device_id)+"&field2="+latitude+"&field3="+ longitude+"&field4="+String(t)+"&field5="+String(alertStatus);
   Serial.println(str);
   gprsSerial.println(str); // Begin send data to remote server
 
